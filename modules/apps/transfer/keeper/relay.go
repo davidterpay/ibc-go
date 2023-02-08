@@ -58,6 +58,7 @@ func (k Keeper) sendTransfer(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	memo string,
+	globalID string,
 ) (uint64, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -70,21 +71,15 @@ func (k Keeper) sendTransfer(
 	var (
 		err error
 		isNative, isSource bool
-		globalID string
 	)
 	
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
-	
+
 	// deconstruct the token denomination into the denomination trace info
 	// to determine if the sender is the source chain, if it is an ibc voucher we'll
-	// be unwinding the pathg
+	// be unwinding the path
 	if strings.HasPrefix(token.Denom, "ibc/") {
-		// grab global-identifier for destinationPort + destinationChannel
-		globalID, err = k.GetTupleToChain(ctx, sourceChannel, sourcePort)
-		if err != nil {
-			return 0, err
-		}
 		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
 		if err != nil {
 			return 0, err
@@ -97,6 +92,11 @@ func (k Keeper) sendTransfer(
 	// change the sourcePort / sourceChannel if the token is not native and we are not a sink
 	// in this case we are performing an unwind
 	if !isNative && isSource {
+		// grab global-identifier for destinationPort + destinationChannel
+		globalID, err = k.GetTupleToChain(ctx, sourceChannel, sourcePort)
+		if err != nil {
+			return 0, err
+		}
 		// separate denomPath
 		unwindData := strings.Split(fullDenomPath, "/")
 		sourcePort = unwindData[0]

@@ -45,6 +45,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send IBC token back to chainB
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				// 
 			}, true,
 		},
 		{
@@ -147,6 +148,69 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestUnwindPacket() {
+	// setup test
+	suite.SetupTest()
+	
+	// setup transfer channel between A and B
+	path := NewTransferPath(suite.chainA, suite.chainB)
+	pathBC := NewTransferPath(suite.chainB, suite.chainC)
+	suite.coordinator.Setup(path)
+	suite.coordinator.Setup(pathBC)
+	// send tokens to chain B
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0, "")
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+	suite.Require().NoError(err)
+	// relay packet to B
+	err = path.RelayPacket(packet)
+	suite.Require().NoError(err)
+	
+	// set globalID on C
+	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC"))
+	suite.Require().NoError(err)
+
+	// begin transfer to C, and check that packet returned is to A and has chainC as globalID
+	coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+	transferMsg = types.NewMsgTransfer(
+		pathBC.EndpointA.ChannelConfig.PortID,
+		pathBC.EndpointA.ChannelID,
+		coin,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainC.SenderAccount.GetAddress().String(),
+		suite.chainC.GetTimeoutHeight(),
+		0, "",
+	)
+	result, err = suite.chainB.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+
+	packet, err = ibctesting.ParsePacketFromEvents(result.GetEvents())
+	var data types.FungibleTokenPacketData
+	suite.Require().NoError(types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data))
+	suite.Require().Equal(data.GlobalIdentifier, "chainC")
+}	
+
+func (suite *KeeperTestSuite) TestContinueUnwindPacket() {
+	// setup test
+	suite.SetupTest()
+	// configure paths
+	path := NewTransferPath(suite.chainA, suite.chainB)
+	suite.coordinator.Setup(path)
+	// send tokens to chain B
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0, "")
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+	suite.Require().NoError(err)
+	// relay packet to B
+	err = path.RelayPacket(packet)
+	suite.Require().NoError(err)
+	
 }
 
 // test receiving coin on chainB with coin that orignate on chainA and
