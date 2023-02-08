@@ -63,21 +63,20 @@ func (k Keeper) sendTransfer(
 	if !found {
 		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
-
+	// get counterparty routing data
 	destinationPort := channel.GetCounterparty().GetPortID()
 	destinationChannel := channel.GetCounterparty().GetChannelID()
-
-	// begin createOutgoingPacket logic
-	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
+	
+	// grab global-identifier for destinationPort + destinationChannel
+	globalID := ""
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
 
-	var err error
+	var (
+		err error
+		isNative, isSource bool
+	)
 
 	// deconstruct the token denomination into the denomination trace info
 	// to determine if the sender is the source chain
@@ -86,6 +85,27 @@ func (k Keeper) sendTransfer(
 		if err != nil {
 			return 0, err
 		}
+	} else {
+		isNative = true
+	}
+
+	isSource = types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath)
+	// change the sourcePort / sourceChannel if the token is not native and we are not a sink
+	// in this case we are performing an unwind
+	if !isNative && isSource {
+		// separate denomPath
+		unwindData := strings.Split(fullDenomPath, "/")
+		sourcePort = unwindData[0]
+		sourceChannel = unwindData[1]
+		memo = globalID
+	}
+
+	// grab capability for next chain in sequence
+	// begin createOutgoingPacket logic
+	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
+	if !ok {
+		return 0, sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	labels := []metrics.Label{
