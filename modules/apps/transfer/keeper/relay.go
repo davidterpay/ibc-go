@@ -189,6 +189,21 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		telemetry.NewLabel(coretypes.LabelSourceChannel, packet.GetSourceChannel()),
 	}
 
+	var (
+		recepient       sdk.AccAddress
+		isAtDestination bool
+	)
+
+	// If the token is being sent and is not at the final destination, then
+	// the token should be sent to the module account where it will be
+	// escrowed and burned until sendTransfer is called on the token.
+	if data.GlobalIdentifier != "" {
+		isAtDestination = false
+		recepient = k.authKeeper.GetModuleAddress(types.ModuleName)
+	} else {
+		recepient = receiver
+	}
+
 	// This is the prefix that would have been prefixed to the denomination
 	// on sender chain IF and only if the token originally came from the
 	// receiving chain.
@@ -221,7 +236,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 		// unescrow tokens
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token)); err != nil {
+		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, recepient, sdk.NewCoins(token)); err != nil {
 			// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
@@ -246,66 +261,79 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				),
 			)
 		}()
+	} else {
+		// sender chain is the source, mint vouchers
 
-		return nil
-	}
+		// since SendPacket did not prefix the denomination, we must prefix denomination here
+		sourcePrefix := types.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
+		// NOTE: sourcePrefix contains the trailing "/"
+		prefixedDenom := sourcePrefix + data.Denom
 
-	// sender chain is the source, mint vouchers
+		// construct the denomination trace from the full raw denomination
+		denomTrace := types.ParseDenomTrace(prefixedDenom)
 
-	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-	// NOTE: sourcePrefix contains the trailing "/"
-	prefixedDenom := sourcePrefix + data.Denom
-
-	// construct the denomination trace from the full raw denomination
-	denomTrace := types.ParseDenomTrace(prefixedDenom)
-
-	traceHash := denomTrace.Hash()
-	if !k.HasDenomTrace(ctx, traceHash) {
-		k.SetDenomTrace(ctx, denomTrace)
-	}
-
-	voucherDenom := denomTrace.IBCDenom()
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeDenomTrace,
-			sdk.NewAttribute(types.AttributeKeyTraceHash, traceHash.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
-		),
-	)
-	voucher := sdk.NewCoin(voucherDenom, transferAmount)
-
-	// mint new tokens if the source of the transfer is the same chain
-	if err := k.bankKeeper.MintCoins(
-		ctx, types.ModuleName, sdk.NewCoins(voucher),
-	); err != nil {
-		return err
-	}
-
-	// send to receiver
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-		ctx, types.ModuleName, receiver, sdk.NewCoins(voucher),
-	); err != nil {
-		return err
-	}
-
-	defer func() {
-		if transferAmount.IsInt64() {
-			telemetry.SetGaugeWithLabels(
-				[]string{"ibc", types.ModuleName, "packet", "receive"},
-				float32(transferAmount.Int64()),
-				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, data.Denom)},
-			)
+		traceHash := denomTrace.Hash()
+		if !k.HasDenomTrace(ctx, traceHash) {
+			k.SetDenomTrace(ctx, denomTrace)
 		}
 
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", types.ModuleName, "receive"},
-			1,
-			append(
-				labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
+		voucherDenom := denomTrace.IBCDenom()
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDenomTrace,
+				sdk.NewAttribute(types.AttributeKeyTraceHash, traceHash.String()),
+				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
 			),
 		)
-	}()
+		voucher := sdk.NewCoin(voucherDenom, transferAmount)
+
+		// mint new tokens if the source of the transfer is the same chain
+		if err := k.bankKeeper.MintCoins(
+			ctx, types.ModuleName, sdk.NewCoins(voucher),
+		); err != nil {
+			return err
+		}
+
+		// send to receiver
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
+			ctx, types.ModuleName, recepient, sdk.NewCoins(voucher),
+		); err != nil {
+			return err
+		}
+
+		defer func() {
+			if transferAmount.IsInt64() {
+				telemetry.SetGaugeWithLabels(
+					[]string{"ibc", types.ModuleName, "packet", "receive"},
+					float32(transferAmount.Int64()),
+					[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, data.Denom)},
+				)
+			}
+
+			telemetry.IncrCounterWithLabels(
+				[]string{"ibc", types.ModuleName, "receive"},
+				1,
+				append(
+					labels, telemetry.NewLabel(coretypes.LabelSource, "false"),
+				),
+			)
+		}()
+	}
+
+	if !isAtDestination {
+		var (
+			sourcePort, sourceChannel string
+			token                     sdk.Coin
+			sender                    sdk.AccAddress
+			receiver                  string
+		)
+
+		// What do we do if on receive we are successful but the subsequent transfer fails?
+		_, err := k.sendTransfer(ctx, sourcePort, sourceChannel, token, sender, receiver, 1, 1, "")
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
