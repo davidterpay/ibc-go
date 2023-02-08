@@ -67,20 +67,24 @@ func (k Keeper) sendTransfer(
 	destinationPort := channel.GetCounterparty().GetPortID()
 	destinationChannel := channel.GetCounterparty().GetChannelID()
 	
-	// grab global-identifier for destinationPort + destinationChannel
-	globalID := ""
-
-	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
-	fullDenomPath := token.Denom
-
 	var (
 		err error
 		isNative, isSource bool
+		globalID string
 	)
-
+	
+	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
+	fullDenomPath := token.Denom
+	
 	// deconstruct the token denomination into the denomination trace info
-	// to determine if the sender is the source chain
+	// to determine if the sender is the source chain, if it is an ibc voucher we'll
+	// be unwinding the pathg
 	if strings.HasPrefix(token.Denom, "ibc/") {
+		// grab global-identifier for destinationPort + destinationChannel
+		globalID, err = k.GetTupleToChain(ctx, sourceChannel, sourcePort)
+		if err != nil {
+			return 0, err
+		}
 		fullDenomPath, err = k.DenomPathFromHash(ctx, token.Denom)
 		if err != nil {
 			return 0, err
