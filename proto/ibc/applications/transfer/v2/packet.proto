@@ -18,4 +18,6 @@ message FungibleTokenPacketData {
   string receiver = 4;
   // optional memo
   string memo = 5;
+  // optional global identifier for the transfer
+  string global_identifier = 6;
 }

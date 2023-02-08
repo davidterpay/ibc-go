@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -34,7 +33,8 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	sequence, err := k.sendTransfer(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.Token, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo)
+		msg.Memo, "",
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -57,4 +57,13 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	})
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
+}
+
+func (k Keeper) RegisterChain(goCtx context.Context, msg *types.MsgRegisterChain) (*types.MsgRegisterChainResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	k.SetChainToTuple(ctx, msg.ChainId, msg.Channel, msg.Port)
+	k.SetTupleToChain(ctx, msg.ChainId, msg.Channel, msg.Port)
+
+	return &types.MsgRegisterChainResponse{}, nil
 }
