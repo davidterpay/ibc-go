@@ -36,6 +36,11 @@ func NewFungibleTokenPacketData(
 	}
 }
 
+func (ftpd FungibleTokenPacketData) WithGlobalID(globalID string) FungibleTokenPacketData {
+	ftpd.GlobalIdentifier = globalID
+	return ftpd
+}
+
 // ValidateBasic is used for validating the token transfer.
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to IBC.

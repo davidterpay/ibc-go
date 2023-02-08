@@ -101,7 +101,6 @@ func (k Keeper) sendTransfer(
 		unwindData := strings.Split(fullDenomPath, "/")
 		sourcePort = unwindData[0]
 		sourceChannel = unwindData[1]
-		memo = globalID
 	}
 
 	// grab capability for next chain in sequence
@@ -157,7 +156,7 @@ func (k Keeper) sendTransfer(
 		fullDenomPath, token.Amount.String(), sender.String(), receiver, memo,
 	)
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.GetBytes())
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData.WithGlobalID(globalID).GetBytes())
 	if err != nil {
 		return 0, err
 	}
