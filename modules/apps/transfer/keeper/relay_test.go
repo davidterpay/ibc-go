@@ -44,6 +44,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send IBC token back to chainB
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+				// 
 			}, true,
 		},
 		{
@@ -148,6 +149,63 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestUnwindPacket() {
+	// setup test
+	suite.SetupTest()
+	
+	// setup transfer channel between A and B
+	path := NewTransferPath(suite.chainA, suite.chainB)
+	pathBC := NewTransferPath(suite.chainB, suite.chainC)
+	pathAC := NewTransferPath(suite.chainA, suite.chainC)
+	suite.coordinator.Setup(path)
+	suite.coordinator.Setup(pathBC)
+	suite.coordinator.Setup(pathAC)
+	// send tokens to chain B
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
+	transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0, "")
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
+	suite.Require().NoError(err)
+	// set globalID on C
+	_, err = suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainA.GetContext()), types.NewMsgRegisterChain(pathAC.EndpointA.ChannelConfig.PortID, pathAC.EndpointA.ChannelID, "chainC"))
+	suite.Require().NoError(err)
+	// relay packet to B
+	err = path.RelayPacket(packet)
+	suite.Require().NoError(err)
+	
+	// set globalID on C
+	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC"))
+	suite.Require().NoError(err)
+
+	// begin transfer to C, and check that packet returned is to A and has chainC as globalID
+	coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+	transferMsg = types.NewMsgTransfer(
+		pathBC.EndpointA.ChannelConfig.PortID,
+		pathBC.EndpointA.ChannelID,
+		coin,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainC.SenderAccount.GetAddress().String(),
+		suite.chainC.GetTimeoutHeight(),
+		0, "",
+	)
+
+	result, err = suite.chainB.SendMsgs(transferMsg)
+	suite.Require().NoError(err)
+
+	packet, err = ibctesting.ParsePacketFromEvents(result.GetEvents())
+	var data types.FungibleTokenPacketData
+	suite.Require().NoError(types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data))
+	suite.Require().Equal(data.GlobalIdentifier, "chainC")
+	// relay packet to A
+	res, err := path.RelayPacketWithResult(packet)
+	suite.Require().NoError(err)
+	// relay packet to C
+	resPacket, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	err = pathAC.RelayPacket(resPacket)
+	suite.Require().NoError(err)
+}
+
 // test receiving coin on chainB with coin that orignate on chainA and
 // coin that orignated on chainB (source). The bulk of the testing occurs
 // in the test case for loop since setup is intensive for all cases. The
@@ -158,6 +216,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		amount   math.Int
 		receiver string
 		memo     string
+		addGlobalID = false
 	)
 
 	testCases := []struct {
@@ -174,6 +233,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{"success receive with coin from another chain as source with memo", func() {
 			memo = "memo"
 		}, false, true},
+		{
+			"success receive with coin global identifier",
+			func() {
+				addGlobalID = true
+			},
+			true,
+			true,
+		},
 		{"empty coin", func() {
 			trace = types.DenomTrace{}
 			amount = sdk.ZeroInt()
@@ -181,7 +248,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{"invalid receiver address", func() {
 			receiver = "gaia1scqhwpgsmr6vmztaa7suurfl52my6nd2kmrudl"
 		}, true, false},
-
 		// onRecvPacket
 		// - coin from chain chainA
 		{"failure: mint zero coin", func() {
@@ -247,6 +313,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			tc.malleate()
 
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
+			if addGlobalID {
+				// add namespace data to chainB
+				_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, "chainA"))
+				suite.Require().NoError(err)
+				// set packet globalData
+				data.GlobalIdentifier = "chainA"
+			}
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -257,9 +330,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.Require().Error(err)
 			}
 		})
+		addGlobalID = false
 	}
 }
-
 // TestOnAcknowledgementPacket tests that successful acknowledgement is a no-op
 // and failure acknowledment leads to refund when attempting to send from chainA
 // to chainB. If sender is source than the denomination being refunded has no

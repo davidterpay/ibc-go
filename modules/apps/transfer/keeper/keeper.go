@@ -28,6 +28,8 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	scopedKeeper  exported.ScopedKeeper
+	connectionKeeper types.ConnectionKeeper
+	clientKeeper	 types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -35,6 +37,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, scopedKeeper exported.ScopedKeeper,
+	clientKeeper types.ClientKeeper, connectionKeeper types.ConnectionKeeper,
 ) Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -56,6 +59,8 @@ func NewKeeper(
 		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 		scopedKeeper:  scopedKeeper,
+		clientKeeper: clientKeeper,
+		connectionKeeper: connectionKeeper,
 	}
 }
 

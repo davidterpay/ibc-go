@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -89,4 +90,57 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 	}
 
 	return fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
+}
+
+
+func (path *Path) RelayPacketWithResult(packet channeltypes.Packet) (*sdk.Result, error) {
+	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
+
+		// packet found, relay from A to B
+		if err := path.EndpointB.UpdateClient(); err != nil {
+			return nil, err
+		}
+
+		res, err := path.EndpointB.RecvPacketWithResult(packet)
+		if err != nil {
+			return nil, err
+		}
+
+		ack, err := ParseAckFromEvents(res.GetEvents())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := path.EndpointA.AcknowledgePacket(packet, ack); err != nil {
+			return nil, err
+		}
+
+		return res, nil
+	}
+
+	pc = path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointB.Chain.App.AppCodec(), packet)) {
+
+		// packet found, relay B to A
+		if err := path.EndpointA.UpdateClient(); err != nil {
+			return nil, err
+		}
+
+		res, err := path.EndpointA.RecvPacketWithResult(packet)
+		if err != nil {
+			return nil, err
+		}
+		ack, err := ParseAckFromEvents(res.GetEvents())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := path.EndpointB.AcknowledgePacket(packet, ack); err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+
+	return nil, fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
 }

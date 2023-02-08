@@ -35,13 +35,18 @@ type ChannelKeeper interface {
 
 // ClientKeeper defines the expected IBC client keeper
 type ClientKeeper interface {
-	GetClientConsensusState(ctx sdk.Context, clientID string) (connection ibcexported.ConsensusState, found bool)
-}
+	GetClientState(ctx sdk.Context, clientID string) (ibcexported.ClientState, bool)
+	GetClientConsensusState(ctx sdk.Context, clientID string, height ibcexported.Height) (ibcexported.ConsensusState, bool)
+	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore}
 
 // ConnectionKeeper defines the expected IBC connection keeper
 type ConnectionKeeper interface {
-	GetConnection(ctx sdk.Context, connectionID string) (connection connectiontypes.ConnectionEnd, found bool)
-}
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
+	GetTimestampAtHeight(
+		ctx sdk.Context,
+		connection connectiontypes.ConnectionEnd,
+		height ibcexported.Height,
+	) (uint64, error)}
 
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {
