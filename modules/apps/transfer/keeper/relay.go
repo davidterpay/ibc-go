@@ -319,11 +319,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(coinToSend),
 		); err != nil {
+			fmt.Printf("\n\n\nMinted coints!!!!\n\n\n")
 			return err
 		} // send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, recipient, sdk.NewCoins(coinToSend),
 		); err != nil {
+			fmt.Printf("\n\n\nHERE\n\n\n")
 			return err
 		}
 
@@ -383,7 +385,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			return err
 		}
 	}
-
+	fmt.Printf("\n\n\nRETURNING CORRECTLY!!!\n\n\n\n")
 	return nil
 }
 

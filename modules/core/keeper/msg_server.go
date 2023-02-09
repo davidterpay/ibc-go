@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"context"
-
+	"fmt"
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -408,7 +408,8 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacke
 	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 	cacheCtx, writeFn = ctx.CacheContext()
 	ack := cbs.OnRecvPacket(cacheCtx, msg.Packet, relayer)
-	if ack == nil || ack.Success() {
+	fmt.Printf("\n\n\nack: %v\n\n\n", ack.Success())
+	if ack == nil || !ack.Success() {
 		// write application state changes for asynchronous and successful acknowledgements
 		writeFn()
 	} else {
