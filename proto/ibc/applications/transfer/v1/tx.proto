@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types";
+option go_package = "github.com/davidterpay/ibc-go/modules/apps/transfer/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -59,6 +59,8 @@ message MsgRegisterChain {
   string port = 2;
   // the channel of the chain to be registered
   string channel = 3;
+  // the signer of tx
+  string sender_address = 4;
 }
 
 // MsgRegisterChainResponse defines the Msg/RegisterChain response type.
