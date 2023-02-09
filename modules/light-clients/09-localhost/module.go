@@ -1,7 +1,7 @@
 package localhost
 
 import (
-	"github.com/cosmos/ibc-go/v6/modules/light-clients/09-localhost/types"
+	"github.com/davidterpay/ibc-go/modules/light-clients/09-localhost/types"
 )
 
 // Name returns the IBC client name

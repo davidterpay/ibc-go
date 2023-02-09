@@ -1,19 +1,20 @@
 package keeper
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"strings"
+
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	coretypes "github.com/cosmos/ibc-go/v6/modules/core/types"
+	"github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	host "github.com/davidterpay/ibc-go/modules/core/24-host"
+	coretypes "github.com/davidterpay/ibc-go/modules/core/types"
 )
 
 // sendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -67,12 +68,12 @@ func (k Keeper) sendTransfer(
 	// get counterparty routing data
 	destinationPort := channel.GetCounterparty().GetPortID()
 	destinationChannel := channel.GetCounterparty().GetChannelID()
-	
+
 	var (
-		err error
+		err                error
 		isNative, isSource bool
 	)
-	
+
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
 
@@ -216,7 +217,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	var (
 		recipient       sdk.AccAddress
 		isAtDestination bool = true
-		coinToSend 	    sdk.Coin
+		coinToSend      sdk.Coin
 	)
 
 	// If the token is being sent and is not at the final destination, then
@@ -319,7 +320,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			ctx, types.ModuleName, sdk.NewCoins(coinToSend),
 		); err != nil {
 			return err
-		}		// send to receiver
+		} // send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, recipient, sdk.NewCoins(coinToSend),
 		); err != nil {
@@ -348,7 +349,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if !isAtDestination {
 		var (
 			sourcePort, sourceChannel string
-			globalID				  string
+			globalID                  string
 		)
 
 		// is the token native
@@ -386,7 +387,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	return nil
 }
 
-func (k *Keeper) getTimeoutData(ctx sdk.Context, sourcePort, sourceChannel string) (clienttypes.Height, uint64, error) { 
+func (k *Keeper) getTimeoutData(ctx sdk.Context, sourcePort, sourceChannel string) (clienttypes.Height, uint64, error) {
 	// get connection details for counterparty
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {

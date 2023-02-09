@@ -6,13 +6,13 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/stretchr/testify/suite"
 
-	v6 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/migrations/v6"
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	v6 "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/controller/migrations/v6"
+	"github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	host "github.com/davidterpay/ibc-go/modules/core/24-host"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
+	ibcmock "github.com/davidterpay/ibc-go/testing/mock"
 )
 
 type MigrationsTestSuite struct {

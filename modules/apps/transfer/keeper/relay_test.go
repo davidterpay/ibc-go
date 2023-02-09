@@ -6,11 +6,11 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
+	"github.com/davidterpay/ibc-go/testing/simapp"
 )
 
 // test sending from chainA to chainB using both coin that orignate on
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send IBC token back to chainB
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
-				// 
+				//
 			}, true,
 		},
 		{
@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 func (suite *KeeperTestSuite) TestUnwindPacket() {
 	// setup test
 	suite.SetupTest()
-	
+
 	// setup transfer channel between A and B
 	path := NewTransferPath(suite.chainA, suite.chainB)
 	pathBC := NewTransferPath(suite.chainB, suite.chainC)
@@ -173,7 +173,7 @@ func (suite *KeeperTestSuite) TestUnwindPacket() {
 	// relay packet to B
 	err = path.RelayPacket(packet)
 	suite.Require().NoError(err)
-	
+
 	// set globalID on C
 	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC"))
 	suite.Require().NoError(err)
@@ -212,10 +212,10 @@ func (suite *KeeperTestSuite) TestUnwindPacket() {
 // malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
-		trace    types.DenomTrace
-		amount   math.Int
-		receiver string
-		memo     string
+		trace       types.DenomTrace
+		amount      math.Int
+		receiver    string
+		memo        string
 		addGlobalID = false
 	)
 
@@ -333,6 +333,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		addGlobalID = false
 	}
 }
+
 // TestOnAcknowledgementPacket tests that successful acknowledgement is a no-op
 // and failure acknowledment leads to refund when attempting to send from chainA
 // to chainB. If sender is source than the denomination being refunded has no

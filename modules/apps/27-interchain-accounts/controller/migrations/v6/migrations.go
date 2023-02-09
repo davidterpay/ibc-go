@@ -8,8 +8,8 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	controllertypes "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/controller/types"
+	host "github.com/davidterpay/ibc-go/modules/core/24-host"
 )
 
 // MigrateICS27ChannelCapability performs a search on a prefix store using the provided store key and module name.

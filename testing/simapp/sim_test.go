@@ -30,9 +30,9 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/testing/simapp/helpers"
+	ibctransfertypes "github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	ibchost "github.com/davidterpay/ibc-go/modules/core/24-host"
+	"github.com/davidterpay/ibc-go/testing/simapp/helpers"
 )
 
 // Get flags every time the simulator is run

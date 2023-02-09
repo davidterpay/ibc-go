@@ -7,10 +7,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/davidterpay/ibc-go/modules/apps/29-fee/types"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	ibcexported "github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 // SendPacket wraps the ICS4Wrapper SendPacket function

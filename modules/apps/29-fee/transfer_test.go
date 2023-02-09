@@ -3,10 +3,10 @@ package fee_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/davidterpay/ibc-go/modules/apps/29-fee/types"
+	transfertypes "github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
 )
 
 // Integration test to ensure ics29 works with ics20

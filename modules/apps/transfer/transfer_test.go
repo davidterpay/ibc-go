@@ -6,9 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
 )
 
 type TransferTestSuite struct {

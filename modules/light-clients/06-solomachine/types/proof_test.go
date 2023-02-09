@@ -4,9 +4,9 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	"github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine/types"
-	solomachinetypes "github.com/cosmos/ibc-go/v6/modules/light-clients/06-solomachine/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/davidterpay/ibc-go/modules/light-clients/06-solomachine/types"
+	solomachinetypes "github.com/davidterpay/ibc-go/modules/light-clients/06-solomachine/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
 )
 
 func (suite *SoloMachineTestSuite) TestVerifySignature() {

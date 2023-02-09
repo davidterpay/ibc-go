@@ -5,9 +5,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	connectiontypes "github.com/davidterpay/ibc-go/modules/core/03-connection/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	ibcexported "github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -37,7 +37,8 @@ type ChannelKeeper interface {
 type ClientKeeper interface {
 	GetClientState(ctx sdk.Context, clientID string) (ibcexported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height ibcexported.Height) (ibcexported.ConsensusState, bool)
-	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore}
+	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+}
 
 // ConnectionKeeper defines the expected IBC connection keeper
 type ConnectionKeeper interface {
@@ -46,7 +47,8 @@ type ConnectionKeeper interface {
 		ctx sdk.Context,
 		connection connectiontypes.ConnectionEnd,
 		height ibcexported.Height,
-	) (uint64, error)}
+	) (uint64, error)
+}
 
 // PortKeeper defines the expected IBC port keeper
 type PortKeeper interface {

@@ -11,11 +11,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v6/testing/mock"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	ibctmtypes "github.com/davidterpay/ibc-go/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
+	ibctestingmock "github.com/davidterpay/ibc-go/testing/mock"
+	"github.com/davidterpay/ibc-go/testing/simapp"
 )
 
 const (

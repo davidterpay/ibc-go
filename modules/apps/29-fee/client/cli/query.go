@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/davidterpay/ibc-go/modules/apps/29-fee/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
 )
 
 // GetCmdIncentivizedPacket returns the unrelayed incentivized packet for a given packetID

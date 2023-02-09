@@ -11,7 +11,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/spf13/cobra"
 
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/types"
 )
 
 const (

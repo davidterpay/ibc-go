@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	"github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 // EmitCreateClientEvent emits a create client event

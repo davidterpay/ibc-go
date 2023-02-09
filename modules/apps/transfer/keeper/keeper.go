@@ -10,10 +10,10 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	porttypes "github.com/davidterpay/ibc-go/modules/core/05-port/types"
+	host "github.com/davidterpay/ibc-go/modules/core/24-host"
+	"github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -22,14 +22,14 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
-	ics4Wrapper   porttypes.ICS4Wrapper
-	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
-	authKeeper    types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	scopedKeeper  exported.ScopedKeeper
+	ics4Wrapper      porttypes.ICS4Wrapper
+	channelKeeper    types.ChannelKeeper
+	portKeeper       types.PortKeeper
+	authKeeper       types.AccountKeeper
+	bankKeeper       types.BankKeeper
+	scopedKeeper     exported.ScopedKeeper
 	connectionKeeper types.ConnectionKeeper
-	clientKeeper	 types.ClientKeeper
+	clientKeeper     types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -50,16 +50,16 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:           cdc,
-		storeKey:      key,
-		paramSpace:    paramSpace,
-		ics4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
-		authKeeper:    authKeeper,
-		bankKeeper:    bankKeeper,
-		scopedKeeper:  scopedKeeper,
-		clientKeeper: clientKeeper,
+		cdc:              cdc,
+		storeKey:         key,
+		paramSpace:       paramSpace,
+		ics4Wrapper:      ics4Wrapper,
+		channelKeeper:    channelKeeper,
+		portKeeper:       portKeeper,
+		authKeeper:       authKeeper,
+		bankKeeper:       bankKeeper,
+		scopedKeeper:     scopedKeeper,
+		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
 	}
 }

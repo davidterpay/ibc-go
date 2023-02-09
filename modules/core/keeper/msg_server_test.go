@@ -4,15 +4,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibcmock "github.com/cosmos/ibc-go/v6/testing/mock"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	commitmenttypes "github.com/davidterpay/ibc-go/modules/core/23-commitment/types"
+	host "github.com/davidterpay/ibc-go/modules/core/24-host"
+	"github.com/davidterpay/ibc-go/modules/core/exported"
+	"github.com/davidterpay/ibc-go/modules/core/keeper"
+	ibctmtypes "github.com/davidterpay/ibc-go/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
+	ibcmock "github.com/davidterpay/ibc-go/testing/mock"
 )
 
 var (

@@ -6,12 +6,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/gogo/protobuf/proto"
 
-	icahosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	icahosttypes "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/davidterpay/ibc-go/modules/apps/29-fee/types"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
 )
 
 var (

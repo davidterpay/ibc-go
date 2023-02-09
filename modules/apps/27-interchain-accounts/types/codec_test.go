@@ -7,8 +7,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/types"
+	"github.com/davidterpay/ibc-go/testing/simapp"
 )
 
 // caseRawBytes defines a helper struct, used for testing codec operations

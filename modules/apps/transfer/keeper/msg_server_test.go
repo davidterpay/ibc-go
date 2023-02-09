@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/davidterpay/ibc-go/modules/apps/transfer/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgTransfer() {

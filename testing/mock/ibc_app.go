@@ -5,8 +5,8 @@ import (
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	"github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.

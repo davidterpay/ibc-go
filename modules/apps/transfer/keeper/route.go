@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/davidterpay/ibc-go/modules/apps/transfer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

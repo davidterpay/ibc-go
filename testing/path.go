@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -91,7 +91,6 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 
 	return fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
 }
-
 
 func (path *Path) RelayPacketWithResult(packet channeltypes.Packet) (*sdk.Result, error) {
 	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())

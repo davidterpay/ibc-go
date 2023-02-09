@@ -4,7 +4,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 // Interface implementation checks.

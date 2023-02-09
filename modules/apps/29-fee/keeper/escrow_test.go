@@ -4,10 +4,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	"github.com/davidterpay/ibc-go/modules/apps/29-fee/types"
+	transfertypes "github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	"github.com/davidterpay/ibc-go/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestDistributeFee() {

@@ -11,12 +11,12 @@ import (
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	clienttypes "github.com/davidterpay/ibc-go/modules/core/02-client/types"
+	connectiontypes "github.com/davidterpay/ibc-go/modules/core/03-connection/types"
+	channeltypes "github.com/davidterpay/ibc-go/modules/core/04-channel/types"
+	commitmenttypes "github.com/davidterpay/ibc-go/modules/core/23-commitment/types"
+	host "github.com/davidterpay/ibc-go/modules/core/24-host"
+	"github.com/davidterpay/ibc-go/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)

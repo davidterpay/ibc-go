@@ -5,8 +5,8 @@ package types
 
 import (
 	fmt "fmt"
-	types "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	types1 "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	types "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/controller/types"
+	types1 "github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/host/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"

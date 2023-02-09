@@ -9,12 +9,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
-	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	ibctransfertypes "github.com/davidterpay/ibc-go/modules/apps/transfer/types"
+	connectiontypes "github.com/davidterpay/ibc-go/modules/core/03-connection/types"
+	commitmenttypes "github.com/davidterpay/ibc-go/modules/core/23-commitment/types"
+	ibctmtypes "github.com/davidterpay/ibc-go/modules/light-clients/07-tendermint/types"
+	"github.com/davidterpay/ibc-go/testing/mock"
+	"github.com/davidterpay/ibc-go/testing/simapp"
 )
 
 const (

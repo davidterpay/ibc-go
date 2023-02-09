@@ -3,8 +3,8 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/davidterpay/ibc-go/modules/apps/27-interchain-accounts/controller/types"
+	ibctesting "github.com/davidterpay/ibc-go/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
