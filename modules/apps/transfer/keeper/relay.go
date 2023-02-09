@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"strings"
+
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,19 +61,23 @@ func (k Keeper) sendTransfer(
 	memo string,
 	globalID string,
 ) (uint64, error) {
+	chainID := ctx.ChainID()
+	destinationChainID, _ := k.GetTupleToChain(ctx, sourceChannel, sourcePort)
+
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, sdkerrors.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
 	}
+
 	// get counterparty routing data
 	destinationPort := channel.GetCounterparty().GetPortID()
 	destinationChannel := channel.GetCounterparty().GetChannelID()
-	
+
 	var (
-		err error
+		err                error
 		isNative, isSource bool
 	)
-	
+
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
 	fullDenomPath := token.Denom
 
@@ -99,7 +104,51 @@ func (k Keeper) sendTransfer(
 		}
 		// separate denomPath
 		sourcePort, sourceChannel = getUnwindData(fullDenomPath)
+
+		fmt.Println(GetIBCBoogieMan("THE IBC BOOGIEMAN IS HERE.........BOO"))
+
+		fmt.Println(`
+		.-""""""-.
+		.'  \\  //  '.
+	   /   O      O   \
+	  :                :
+	  |                |  user angry. thinks he got rugged. 
+	  :       __       :
+	   \  .-"  "-.  /
+		'.          .'
+	 jgs  '-......-'
+
+
+	 __       ___                 ___ 
+	 |__) |  |  |     |  |  /\  |  |  
+	 |__) \__/  |     |/\| /~~\ |  |  
+
+
+	 user remember he used 
+
+ _____________ ________________     _________________    ___________   ______  _______ 
+__  ___/__  //_/___  _/__  __ \    __  ___/__    |_ |  / /__  ____/   __|__ \ __  __ \
+_____ \__  ,<   __  / __  /_/ /    _____ \__  /| |_ | / /__  __/      ____/ / _  / / /
+____/ /_  /| | __/ /  _  ____/     ____/ /_  ___ |_ |/ / _  /___      _  __/__/ /_/ / 
+/____/ /_/ |_| /___/  /_/          /____/ /_/  |_|____/  /_____/      /____/(_)____/
+
+skip 2.0 nvr rug user. we do smart IBC unwinding providing the best UX for noob users like bob. bob feels loved. remembers the meaning of life.
+
+
+   .-""""""-.  
+ . '          '. 
+/    O      O   \ 
+:                :
+|                |  
+: ',          ,' :
+\   '-.____.-'  / 
+  '.     U    .'
+jgs  '-......-'
+		`)
+
 	}
+
+	fmt.Println(GetComputerChainArt(chainID, destinationChainID))
 
 	// grab capability for next chain in sequence
 	// begin createOutgoingPacket logic
@@ -118,7 +167,7 @@ func (k Keeper) sendTransfer(
 	// chain inside the packet data. The receiving chain will perform denom
 	// prefixing as necessary.
 
-	if types.SenderChainIsSource(sourcePort, sourceChannel, fullDenomPath) {
+	if isSource {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 
 		// create the escrow address for the tokens
@@ -216,7 +265,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	var (
 		recipient       sdk.AccAddress
 		isAtDestination bool = true
-		coinToSend 	    sdk.Coin
+		coinToSend      sdk.Coin
 	)
 
 	// If the token is being sent and is not at the final destination, then
@@ -319,7 +368,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			ctx, types.ModuleName, sdk.NewCoins(coinToSend),
 		); err != nil {
 			return err
-		}		// send to receiver
+		} // send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
 			ctx, types.ModuleName, recipient, sdk.NewCoins(coinToSend),
 		); err != nil {
@@ -348,7 +397,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if !isAtDestination {
 		var (
 			sourcePort, sourceChannel string
-			globalID				  string
+			globalID                  string
 		)
 
 		// is the token native
@@ -386,7 +435,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	return nil
 }
 
-func (k *Keeper) getTimeoutData(ctx sdk.Context, sourcePort, sourceChannel string) (clienttypes.Height, uint64, error) { 
+func (k *Keeper) getTimeoutData(ctx sdk.Context, sourcePort, sourceChannel string) (clienttypes.Height, uint64, error) {
 	// get connection details for counterparty
 	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {

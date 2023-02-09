@@ -2,7 +2,6 @@ package ibctesting
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
 
@@ -11,9 +10,9 @@ import (
 )
 
 var (
-	ChainIDPrefix = "testchain"
+	ChainIDPrefix = "chain"
 	// to disable revision format, set ChainIDSuffix to ""
-	ChainIDSuffix   = "-1"
+	ChainIDSuffix   = ""
 	globalStartTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	TimeIncrement   = time.Second * 5
 )
@@ -175,7 +174,16 @@ func (coord *Coordinator) GetChain(chainID string) *TestChain {
 
 // GetChainID returns the chainID used for the provided index.
 func GetChainID(index int) string {
-	return ChainIDPrefix + strconv.Itoa(index) + ChainIDSuffix
+	chainID := "a"
+	switch index {
+	case 1:
+		chainID = "A"
+	case 2:
+		chainID = "B"
+	case 3:
+		chainID = "C"
+	}
+	return ChainIDPrefix + chainID + ChainIDSuffix
 }
 
 // CommitBlock commits a block on the provided indexes and then increments the global time.

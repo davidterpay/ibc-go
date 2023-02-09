@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			func() {
 				// send IBC token back to chainB
 				coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
-				// 
+				//
 			}, true,
 		},
 		{
@@ -153,34 +153,145 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 func (suite *KeeperTestSuite) TestUnwindPacket() {
 	// setup test
 	suite.SetupTest()
-	
+
 	// setup transfer channel between A and B
-	path := NewTransferPath(suite.chainA, suite.chainB)
+	pathAB := NewTransferPath(suite.chainA, suite.chainB)
 	pathBC := NewTransferPath(suite.chainB, suite.chainC)
 	pathAC := NewTransferPath(suite.chainA, suite.chainC)
-	suite.coordinator.Setup(path)
+	suite.coordinator.Setup(pathAB)
 	suite.coordinator.Setup(pathBC)
 	suite.coordinator.Setup(pathAC)
+
+	// set globalIDs on A
+	_, err := suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainA.GetContext()), types.NewMsgRegisterChain(pathAC.EndpointA.ChannelConfig.PortID, pathAC.EndpointA.ChannelID, "chainC"))
+	suite.Require().NoError(err)
+
+	_, err = suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainA.GetContext()), types.NewMsgRegisterChain(pathAB.EndpointA.ChannelConfig.PortID, pathAB.EndpointA.ChannelID, "chainB"))
+	suite.Require().NoError(err)
+
+	// set globalIDs on B
+	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC"))
+	suite.Require().NoError(err)
+
+	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathAB.EndpointA.ChannelConfig.PortID, pathAB.EndpointA.ChannelID, "chainA"))
+	suite.Require().NoError(err)
+
+	// set globalIDs on C
+	_, err = suite.chainC.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainC.GetContext()), types.NewMsgRegisterChain(pathAC.EndpointA.ChannelConfig.PortID, pathAC.EndpointA.ChannelID, "chainA"))
+	suite.Require().NoError(err)
+
+	_, err = suite.chainC.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainC.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainB"))
+	suite.Require().NoError(err)
+
+	fmt.Println(`
+	.-""""""-.
+	.'          '.
+   /   O      O   \
+  :                :
+  |                |   new very happy cosmos user, bob. gud
+  : ',          ,' :
+   \  '-......-'  /
+	'.          .'
+ jgs  '-......-'
+ 
+	user very excite to use cosmos. user tired of farm fields. is exploring new types of farms
+	--------------------------------------------------------------------------------------------
+ `)
+
 	// send tokens to chain B
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
-	transferMsg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0, "")
+	transferMsg := types.NewMsgTransfer(pathAB.EndpointA.ChannelConfig.PortID, pathAB.EndpointA.ChannelID, coin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.GetTimeoutHeight(), 0, "")
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err)
 	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
 	suite.Require().NoError(err)
-	// set globalID on C
-	_, err = suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainA.GetContext()), types.NewMsgRegisterChain(pathAC.EndpointA.ChannelConfig.PortID, pathAC.EndpointA.ChannelID, "chainC"))
-	suite.Require().NoError(err)
 	// relay packet to B
-	err = path.RelayPacket(packet)
-	suite.Require().NoError(err)
-	
-	// set globalID on C
-	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC"))
+	err = pathAB.RelayPacket(packet)
 	suite.Require().NoError(err)
 
+	fmt.Print(`
+	--------------------------------------------------------------------------------------------
+
+	.--------.
+  .'          '.
+ /   O      O   \
+:           *    :
+|            *   |   sad bob. no 2000% APR LP pools on harambe coin on this chain.
+:    .------.    :
+ \  '        '  /
+  '.          .'
+jgs  '-......-'
+
+	may have to return to the fields.
+
+
+
+╔╗ ┬ ┬┌┬┐  ┬ ┬┌─┐┬┌┬┐
+╠╩╗│ │ │   │││├─┤│ │ 
+╚═╝└─┘ ┴   └┴┘┴ ┴┴ ┴ .............................................\n\n
+`)
+
+	fmt.Print(`
+
+	bob sees 2000% APR LP pools for shit coin harambe on chain C. user very happy. user take 
+	big bag to chain C!
+
+	┏(°.°)┛
+	
+	
+	┗(°.°)┓
+	
+	
+	┗(°.°)┛
+	
+	
+	┏(°.°)┓
+
+
+▒▒▒▒▒▒▒▒▄▄▄▄▄▄▄▄▒▒▒▒▒▒▒▒
+▒▒▒▒▒▄█▀▀░░░░░░▀▀█▄▒▒▒▒▒
+▒▒▒▄█▀▄██▄░░░░░░░░▀█▄▒▒▒
+▒▒█▀░▀░░▄▀░░░░▄▀▀▀▀░▀█▒▒
+▒█▀░░░░███░░░░▄█▄░░░░▀█▒
+▒█░░░░░░▀░░░░░▀█▀░░░░░█▒
+▒█░░░░░░░░░░░░░░░░░░░░█▒
+▒█░░██▄░░▀▀▀▀▄▄░░░░░░░█▒ user think. how do i get to chain C?
+▒▀█░█░█░░░▄▄▄▄▄░░░░░░█▀▒
+▒▒▀█▀░▀▀▀▀░▄▄▄▀░░░░▄█▀▒▒
+▒▒▒█░░░░░░▀█░░░░░▄█▀▒▒▒▒
+▒▒▒█▄░░░░░▀█▄▄▄█▀▀▒▒▒▒▒▒
+▒▒▒▒▀▀▀▀▀▀▀▒▒▒▒▒▒▒▒▒▒▒▒▒
+
+
+                      
+|_  ._ o  _|  _   _  
+|_) |  | (_| (_| (/_  to chain C!!!!!!!!!
+			  _|     
+
+
+
+			  user thinking about new lambo he can buy with his new harambe coin farm yield
+
+			  _.-="_-         _
+			  _.-="   _-          | ||"""""""---._______     __..
+  ___.===""""-.______-,,,,,,,,,,,,-''----" """""       """""  __'
+__.--""     __        ,'                   o \           __        [__|
+__-""=======.--""  ""--.=================================.--""  ""--.=======:
+]       [w] : /        \ : |========================|    : /        \ :  [w] :
+V___________:|          |: |========================|    :|          |:   _-"
+V__________: \        / :_|=======================/_____: \        / :__-"
+-----------'  "-____-"  -------------------------------'  "-____-"
+	--------------------------------------------------------------------------------------------
+
+
+	bob make mistake. we all do. bob pay for IBC tx to chain C when bob should have gone back to chain A first!
+
+
+
+`)
+
 	// begin transfer to C, and check that packet returned is to A and has chainC as globalID
-	coin = types.GetTransferCoin(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coin.Denom, coin.Amount)
+	coin = types.GetTransferCoin(pathAB.EndpointA.ChannelConfig.PortID, pathAB.EndpointA.ChannelID, coin.Denom, coin.Amount)
 	transferMsg = types.NewMsgTransfer(
 		pathBC.EndpointA.ChannelConfig.PortID,
 		pathBC.EndpointA.ChannelID,
@@ -199,12 +310,75 @@ func (suite *KeeperTestSuite) TestUnwindPacket() {
 	suite.Require().NoError(types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data))
 	suite.Require().Equal(data.GlobalIdentifier, "chainC")
 	// relay packet to A
-	res, err := path.RelayPacketWithResult(packet)
+	res, err := pathAB.RelayPacketWithResult(packet)
 	suite.Require().NoError(err)
 	// relay packet to C
 	resPacket, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	err = pathAC.RelayPacket(resPacket)
 	suite.Require().NoError(err)
+
+	fmt.Print(`
+
+	bob make mistake. we all do. bob didnt have to pay for it though because he was able to
+
+	___  _ _   __  ___ 
+	/ __)( ) ) (  )(  ,\
+	\__ \ )  \  )(  ) _/
+	(___/(_)\_)(__)(_)  
+
+	the pain.
+
+
+	  bob make big 
+
+
+─────────███─────────
+─────────█$█─────────
+─────█████$██████────
+───███████$████████──
+──████████$████████──
+─█████████$████████──
+─███████─█$█──████───
+─███████─█$█─────────
+─█████████$█─────────
+─█████████$█████─────
+──████████$███████───
+────██████$█████████─
+───────███$█████████─
+─────────█$█─████████
+─────────█$█──███████
+──████───█$█──███████
+─█████████$█████████─
+██████████$█████████─
+─█████████$████████──
+───███████$██████────
+─────────█$█─────────
+─────────███─────────
+
+
+bob buy new boat
+	
+_\/_                 |                _\/_
+/o\\             \       /            //o\
+ |                 .---.                |
+_|_______     --  /     \  --     ______|__
+ 		  ~^~^~^~^~^~^~^~^~^~^~^~
+			jgs
+
+			__/___            
+			_____/______|           
+	_______/_____\_______\_____     
+	\              < < <       |    
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+  bob invite skip team. skip team gets sturdy. 
+  
+ 
+ 
+  everyone wins...........
+
+	`)
 }
 
 // test receiving coin on chainB with coin that orignate on chainA and
@@ -213,10 +387,10 @@ func (suite *KeeperTestSuite) TestUnwindPacket() {
 // malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	var (
-		trace    types.DenomTrace
-		amount   math.Int
-		receiver string
-		memo     string
+		trace       types.DenomTrace
+		amount      math.Int
+		receiver    string
+		memo        string
 		addGlobalID = false
 	)
 
@@ -334,6 +508,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		addGlobalID = false
 	}
 }
+
 // TestOnAcknowledgementPacket tests that successful acknowledgement is a no-op
 // and failure acknowledment leads to refund when attempting to send from chainA
 // to chainB. If sender is source than the denomination being refunded has no
