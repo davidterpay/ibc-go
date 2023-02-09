@@ -44,7 +44,7 @@ func NewRegisterChainTxCmd() *cobra.Command {
 			port := args[1]
 			channel := args[2]
 
-			msg := types.NewMsgRegisterChain(port, channel, chainID)
+			msg := types.NewMsgRegisterChain(port, channel, chainID, clientCtx.GetFromAddress().String())
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

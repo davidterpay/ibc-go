@@ -168,14 +168,14 @@ func (suite *KeeperTestSuite) TestUnwindPacket() {
 	packet, err := ibctesting.ParsePacketFromEvents(result.GetEvents())
 	suite.Require().NoError(err)
 	// set globalID on C
-	_, err = suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainA.GetContext()), types.NewMsgRegisterChain(pathAC.EndpointA.ChannelConfig.PortID, pathAC.EndpointA.ChannelID, "chainC"))
+	_, err = suite.chainA.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainA.GetContext()), types.NewMsgRegisterChain(pathAC.EndpointA.ChannelConfig.PortID, pathAC.EndpointA.ChannelID, "chainC", "A"))
 	suite.Require().NoError(err)
 	// relay packet to B
 	err = path.RelayPacket(packet)
 	suite.Require().NoError(err)
 
 	// set globalID on C
-	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC"))
+	_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(pathBC.EndpointA.ChannelConfig.PortID, pathBC.EndpointA.ChannelID, "chainC", "A"))
 	suite.Require().NoError(err)
 
 	// begin transfer to C, and check that packet returned is to A and has chainC as globalID
@@ -315,7 +315,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			data := types.NewFungibleTokenPacketData(trace.GetFullDenomPath(), amount.String(), suite.chainA.SenderAccount.GetAddress().String(), receiver, memo)
 			if addGlobalID {
 				// add namespace data to chainB
-				_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, "chainA"))
+				_, err = suite.chainB.GetSimApp().TransferKeeper.RegisterChain(sdk.WrapSDKContext(suite.chainB.GetContext()), types.NewMsgRegisterChain(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, "chainA", "A"))
 				suite.Require().NoError(err)
 				// set packet globalData
 				data.GlobalIdentifier = "chainA"

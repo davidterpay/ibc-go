@@ -89,11 +89,12 @@ func (msg MsgTransfer) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgRegisterChain creates a new MsgRegisterChain instance
-func NewMsgRegisterChain(port, channel, chainID string) *MsgRegisterChain {
+func NewMsgRegisterChain(port, channel, chainID, senderAddress string) *MsgRegisterChain {
 	return &MsgRegisterChain{
 		Port:    port,
 		Channel: channel,
 		ChainId: chainID,
+		SenderAddress: senderAddress,
 	}
 }
 
@@ -114,5 +115,9 @@ func (msg MsgRegisterChain) GetSignBytes() []byte {
 
 // GetSigners implements sdk.Msg
 func (msg MsgRegisterChain) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
+	signer, err := sdk.AccAddressFromBech32(msg.SenderAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
 }

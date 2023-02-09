@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestRegisterChain() {
 		{
 			"success",
 			func() {
-				msg = types.NewMsgRegisterChain("test-chain", "channel-0", "transfer")
+				msg = types.NewMsgRegisterChain("test-chain", "channel-0", "transfer", "A")
 			},
 		},
 	}
