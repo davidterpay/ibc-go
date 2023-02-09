@@ -203,7 +203,7 @@ func (suite *KeeperTestSuite) TestUnwindPacket() {
 	suite.Require().NoError(err)
 	// relay packet to C
 	resPacket, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-	err = path.RelayPacket(resPacket)
+	err = pathAC.RelayPacket(resPacket)
 	suite.Require().NoError(err)
 }
 
@@ -230,17 +230,18 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{"success receive on source chain with memo", func() {
 			memo = "memo"
 		}, true, true},
-		{
-			"success receive on source chain with globalID",
-			func() {
-				addGlobalID = true
-			},
-			true, true,
-		},
 		{"success receive with coin from another chain as source", func() {}, false, true},
 		{"success receive with coin from another chain as source with memo", func() {
 			memo = "memo"
 		}, false, true},
+		{
+			"success receive with coin global identifier",
+			func() {
+				addGlobalID = true
+			},
+			true,
+			true,
+		},
 		{"empty coin", func() {
 			trace = types.DenomTrace{}
 			amount = sdk.ZeroInt()
@@ -322,9 +323,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			}
 			packet := channeltypes.NewPacket(data.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 
-			if addGlobalID {
-				err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
-			}
+			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
 			if tc.expPass {
 				suite.Require().NoError(err)

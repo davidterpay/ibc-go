@@ -314,7 +314,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			),
 		)
 		coinToSend = sdk.NewCoin(voucherDenom, transferAmount)
-
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.bankKeeper.MintCoins(
 			ctx, types.ModuleName, sdk.NewCoins(coinToSend),
@@ -371,31 +370,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 			}
 			globalID = ""
 		}
-		fmt.Println("sourcePort", sourcePort, "sourceChannel", sourceChannel, "globalID", globalID, "sender", recipient, "receiver", data.Receiver, "token", coinToSend)
 
-		// get connection details for counterparty
-		channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
-		if !found {
-			return errors.New("channel not found")
-		}
-		connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-		if !found {
-			return errors.New("connection not found")
-		}
-		clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
-		if !found {
-			return errors.New("client state not found")
-		}
-
-		latestHeight := clientState.GetLatestHeight().(clienttypes.Height)
-		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
+		latestHeight, latestTimestamp, err := k.getTimeoutData(ctx, sourcePort, sourceChannel)
 		if err != nil {
 			return err
 		}
-		// increase revision height
-		latestHeight.RevisionHeight += 10000
 		// What do we do if on receive we are successful but the subsequent transfer fails?
-		_, err = k.sendTransfer(ctx, sourcePort, sourceChannel, coinToSend, recipient, data.Receiver, latestHeight, latestTimestamp + 10000, "", globalID)
+		_, err = k.sendTransfer(ctx, sourcePort, sourceChannel, coinToSend, recipient, data.Receiver, latestHeight, latestTimestamp, "", globalID)
 		if err != nil {
 			fmt.Println("err", err)
 			return err
@@ -403,6 +384,32 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	return nil
+}
+
+func (k *Keeper) getTimeoutData(ctx sdk.Context, sourcePort, sourceChannel string) (clienttypes.Height, uint64, error) { 
+	// get connection details for counterparty
+	channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+	if !found {
+		return clienttypes.Height{}, 0, errors.New("channel not found")
+	}
+	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !found {
+		return clienttypes.Height{}, 0, errors.New("connection not found")
+	}
+	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
+	if !found {
+		return clienttypes.Height{}, 0, errors.New("client state not found")
+	}
+
+	latestHeight := clientState.GetLatestHeight().(clienttypes.Height)
+	latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
+	if err != nil {
+		return clienttypes.Height{}, 0, nil
+	}
+	// increase revision height
+	latestHeight.RevisionHeight += 10000
+	latestTimestamp += 1 * 1e12
+	return latestHeight, latestTimestamp, nil
 }
 
 func getUnwindData(fullDenomPath string) (string, string) {
