@@ -25,6 +25,33 @@ const (
 	flagMemo                   = "memo"
 )
 
+func NewRegisterChainTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "register [chain-id] [port-id] [channel-id]",
+		Short: "Register a chain to the transfer module",
+		Example: fmt.Sprintf(
+			"%s tx ibc-transfer register [chain-id] [port-id] [channel-id]",
+			version.AppName,
+		),
+		Args: cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			chainID := args[0]
+			port := args[1]
+			channel := args[2]
+
+			msg := types.NewMsgRegisterChain(port, channel, chainID)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	return cmd
+}
+
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
