@@ -156,7 +156,7 @@ The following audits have been performed on the `ibc-go` source code:
 
 
 ## IBC Smart Routing
-
+```
 
 	.-""""""-.
 	.'          '.
@@ -433,3 +433,4 @@ _|_______     --  /     \  --     ______|__
  
  
   everyone wins...........
+  ```
