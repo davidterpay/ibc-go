@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"fmt"
+	"errors"
 	"strings"
-
 	metrics "github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -98,9 +98,7 @@ func (k Keeper) sendTransfer(
 			return 0, err
 		}
 		// separate denomPath
-		unwindData := strings.Split(fullDenomPath, "/")
-		sourcePort = unwindData[0]
-		sourceChannel = unwindData[1]
+		sourcePort, sourceChannel = getUnwindData(fullDenomPath)
 	}
 
 	// grab capability for next chain in sequence
@@ -195,10 +193,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		return types.ErrReceiveDisabled
 	}
 
-	// decode the receiver address
+	var acctErr error
+
+	// decode the receiver address, if this is a failure, check if it is due to the packet
+	// being an unwinded packet
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
-		return err
+		acctErr = err
 	}
 
 	// parse the transfer amount
@@ -213,8 +214,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	var (
-		recepient       sdk.AccAddress
-		isAtDestination bool
+		recipient       sdk.AccAddress
+		isAtDestination bool = true
+		coinToSend 	    sdk.Coin
 	)
 
 	// If the token is being sent and is not at the final destination, then
@@ -222,9 +224,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	// escrowed and burned until sendTransfer is called on the token.
 	if data.GlobalIdentifier != "" {
 		isAtDestination = false
-		recepient = k.authKeeper.GetModuleAddress(types.ModuleName)
+		recipient = k.authKeeper.GetModuleAddress(types.ModuleName)
 	} else {
-		recepient = receiver
+		if acctErr != nil {
+			return acctErr
+		}
+		recipient = receiver
 	}
 
 	// This is the prefix that would have been prefixed to the denomination
@@ -251,7 +256,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 		if denomTrace.Path != "" {
 			denom = denomTrace.IBCDenom()
 		}
-		token := sdk.NewCoin(denom, transferAmount)
+		coinToSend = sdk.NewCoin(denom, transferAmount)
 
 		if k.bankKeeper.BlockedAddr(receiver) {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
@@ -259,7 +264,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 
 		// unescrow tokens
 		escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, recepient, sdk.NewCoins(token)); err != nil {
+		if err := k.bankKeeper.SendCoins(ctx, escrowAddress, recipient, sdk.NewCoins(coinToSend)); err != nil {
 			// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 			// counterparty module. The bug may occur in bank or any part of the code that allows
 			// the escrow address to be drained. A malicious counterparty module could drain the
@@ -308,18 +313,16 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 				sdk.NewAttribute(types.AttributeKeyDenom, voucherDenom),
 			),
 		)
-		voucher := sdk.NewCoin(voucherDenom, transferAmount)
+		coinToSend = sdk.NewCoin(voucherDenom, transferAmount)
 
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.bankKeeper.MintCoins(
-			ctx, types.ModuleName, sdk.NewCoins(voucher),
+			ctx, types.ModuleName, sdk.NewCoins(coinToSend),
 		); err != nil {
 			return err
-		}
-
-		// send to receiver
+		}		// send to receiver
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(
-			ctx, types.ModuleName, recepient, sdk.NewCoins(voucher),
+			ctx, types.ModuleName, recipient, sdk.NewCoins(coinToSend),
 		); err != nil {
 			return err
 		}
@@ -346,19 +349,67 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	if !isAtDestination {
 		var (
 			sourcePort, sourceChannel string
-			token                     sdk.Coin
-			sender                    sdk.AccAddress
-			receiver                  string
+			globalID				  string
 		)
 
-		// What do we do if on receive we are successful but the subsequent transfer fails?
-		_, err := k.sendTransfer(ctx, sourcePort, sourceChannel, token, sender, receiver, 1, 1, "")
+		// is the token native
+		if strings.HasPrefix(coinToSend.Denom, "ibc/") {
+			fullDenomPath, err := k.DenomPathFromHash(ctx, coinToSend.Denom)
+			if err != nil {
+				fmt.Println("err", err)
+				return err
+			}
+			sourcePort, sourceChannel = getUnwindData(fullDenomPath)
+			globalID = data.GlobalIdentifier
+		} else {
+			// token is native, get the channel / port from the globalID
+			// TODO: actually catch, and make errors atomic
+			sourceChannel, sourcePort, err = k.GetChainToTuple(ctx, data.GlobalIdentifier)
+			if err != nil {
+				fmt.Println("err", err)
+				return err
+			}
+			globalID = ""
+		}
+		fmt.Println("sourcePort", sourcePort, "sourceChannel", sourceChannel, "globalID", globalID, "sender", recipient, "receiver", data.Receiver, "token", coinToSend)
+
+		// get connection details for counterparty
+		channel, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
+		if !found {
+			return errors.New("channel not found")
+		}
+		connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		if !found {
+			return errors.New("connection not found")
+		}
+		clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
+		if !found {
+			return errors.New("client state not found")
+		}
+
+		latestHeight := clientState.GetLatestHeight().(clienttypes.Height)
+		latestTimestamp, err := k.connectionKeeper.GetTimestampAtHeight(ctx, connectionEnd, latestHeight)
 		if err != nil {
+			return err
+		}
+		// increase revision height
+		latestHeight.RevisionHeight += 10000
+		// What do we do if on receive we are successful but the subsequent transfer fails?
+		_, err = k.sendTransfer(ctx, sourcePort, sourceChannel, coinToSend, recipient, data.Receiver, latestHeight, latestTimestamp + 10000, "", globalID)
+		if err != nil {
+			fmt.Println("err", err)
 			return err
 		}
 	}
 
 	return nil
+}
+
+func getUnwindData(fullDenomPath string) (string, string) {
+	unwindData := strings.Split(fullDenomPath, "/")
+	sourcePort := unwindData[0]
+	sourceChannel := unwindData[1]
+	return sourcePort, sourceChannel
 }
 
 // OnAcknowledgementPacket responds to the the success or failure of a packet
